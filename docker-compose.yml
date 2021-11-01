@@ -3,8 +3,6 @@ services:
   anchorit:
     image: node:10
     container_name: anchorit
-    depends_on:
-      - connect
     working_dir: /home/node/app
     networks:
       - local_default
