@@ -2,6 +2,7 @@
 
 import React, {useState} from 'react'
 import {ethers} from 'ethers'
+import useWeb3 from "./useWeb3";
 import './WalletCard.css'
 
 const WalletCard = () => {
@@ -10,21 +11,33 @@ const WalletCard = () => {
 	const [defaultAccount, setDefaultAccount] = useState(null);
 	const [userBalance, setUserBalance] = useState(null);
 	const [connButtonText, setConnButtonText] = useState('Connect Wallet');
+	const web3 = useWeb3();
 
 	const connectWalletHandler = () => {
 		if (window.ethereum && window.ethereum.isMetaMask) {
 			console.log('MetaMask Here!');
-
-			window.ethereum.request({ method: 'eth_requestAccounts'})
-			.then(result => {
-				accountChangedHandler(result[0]);
-				setConnButtonText('Wallet Connected');
-				getAccountBalance(result[0]);
-			})
-			.catch(error => {
-				setErrorMessage(error.message);
-			
-			});
+			if (connButtonText === 'Connect Wallet') {
+				window.ethereum.request({ method: 'eth_requestAccounts'})
+				.then(result => {
+					accountChangedHandler(result[0]);
+					setConnButtonText('Wallet Connected');
+					getAccountBalance(result[0]);
+				})
+				.catch(error => {
+					setErrorMessage(error.message);
+				
+				});
+			} else if (connButtonText === 'SEND ETHER') {
+				console.log(defaultAccount);
+				window.ethereum.request({ method: 'eth_sendTransaction', params: [{"from": defaultAccount, "to": "0x3d0Cd253dB6dE5D98a5C2d6817183C9535530A50", "value": parseInt(web3.utils.toWei("2", "ether")).toString(16)}]})
+				.then(result => {
+					console.log(result);
+				})
+				.catch(error => {
+					setErrorMessage(error.message);
+				
+				});
+			}
 
 		} else {
 			console.log('Need to install MetaMask');
@@ -43,6 +56,9 @@ const WalletCard = () => {
 			window.ethereum.request({method: 'eth_getBalance', params: [account, 'latest']})
 			.then(balance => {
 				setUserBalance(ethers.utils.formatEther(balance));
+				if (balance > 0) {
+					setConnButtonText('SEND ETHER');
+				}
 			})
 			.catch(error => {
 				setErrorMessage(error.message);
